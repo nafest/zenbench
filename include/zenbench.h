@@ -1,6 +1,9 @@
 // Copyright (c) 2016 Stefan Winkler
 // License: MIT License (for full license see LICENSE)
 
+#ifndef _ZENBENCH_H
+#define _ZENBENCH_H
+
 #include <algorithm>
 #include <chrono>
 #include <vector>
@@ -16,13 +19,22 @@ using BenchmarkList = std::vector<class Benchmark*>;
 class Context
 {
 public:
-    Context(std::chrono::nanoseconds duration) : running(false), duration(duration)
+    Context(std::chrono::nanoseconds duration) : running(false), useArea(false), duration(duration)
     {}
     
     // Keeps the benchmark running for the duration given in the constructor.
     // Return true as long as there is time left. 
     bool Running()
     {
+        if (useArea)
+        {
+            if (runTime > duration)
+            {
+                return false;
+            }
+            iterations++;
+            return true;
+        }
         if (!running)
         {
             running = true;
@@ -41,22 +53,70 @@ public:
         return true;
     }
     
-    __int64_t TimePerIteration() const
+protected:    
+    __int64_t TimePerIteration(__int64_t overhead = 0) const
     {
-        return runTime.count()/iterations;
+        auto  perIt = runTime.count()/iterations;
+        
+        if (!useArea)
+        {
+            perIt -= overhead;
+        }
+        
+        return perIt;
     }
 
     __int64_t Iterations() const
     {
         return iterations;
     }
+    
+    void BeginArea()
+    {
+        if (!useArea)
+        {
+            // reset everything set by Running()
+            iterations = 1;
+            runTime = std::chrono::nanoseconds::zero();  
+            useArea = true; 
+        }
+        start = std::chrono::high_resolution_clock::now();
+    }
+    
+    void EndArea()
+    {
+        auto now = std::chrono::high_resolution_clock::now();
+        runTime += (now - start);
+    }
 
 private:
     bool                                             running;
+    bool                                             useArea;
     __int64_t                                        iterations;
     std::chrono::high_resolution_clock::time_point   start;
     std::chrono::nanoseconds                         duration;
     std::chrono::nanoseconds                         runTime;
+    
+    friend class BenchmarkArea;
+    friend class Benchmark;
+};
+
+
+class BenchmarkArea
+{
+public:
+    BenchmarkArea(Context& ctxt) : ctxt(ctxt)
+    {
+        ctxt.BeginArea();
+    }
+    
+    ~BenchmarkArea()
+    {
+        ctxt.EndArea();
+    }    
+
+private:
+    Context&  ctxt;
 };
 
 class Benchmark 
@@ -98,7 +158,7 @@ public:
             benchmark->RunBenchmark(ctxt);
             benchmark->TearDown();
             std::ostringstream ost;
-            auto timePerIteration = ctxt.TimePerIteration() - overheadCtxt.TimePerIteration();
+            auto timePerIteration = ctxt.TimePerIteration(overheadCtxt.TimePerIteration());
             timePerIteration = std::max(timePerIteration,0ll);
             ost << timePerIteration;
             auto nanoStr = ost.str();
@@ -191,3 +251,5 @@ _ZB_CONCAT(FIXTURE,NAME)::_init _ZB_CONCAT(FIXTURE,NAME)::_initializer; \
 void _ZB_CONCAT(FIXTURE,NAME)::RunBenchmark(zenbench::Context& ctxt)
 
 }  // namespace zenbench
+
+#endif
