@@ -1,9 +1,10 @@
 #include "zenbench.h"
 #include <vector>
 #include <algorithm>
+#include <random>
 #include <cmath>
 
-// second source file to show, that zenbench.h can be included included
+// second source file to show that zenbench.h can be included included
 // in multiple compilation units
 
 class FloatVector : public zenbench::Benchmark
@@ -12,13 +13,14 @@ protected:
     virtual void SetUp() override
     {
         zenbench::Benchmark::SetUp();
+        std::mt19937  mtrand;
         
         
-        vec.resize(1000);
+        vec.resize(size);
         // put your initialization code here
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < size; i++)
         {
-            vec[i] = pow(-1,i)*i;
+            vec[i] = mtrand();
         }
     }
     
@@ -31,42 +33,138 @@ protected:
     
 protected:
     std::vector<float>  vec;
+    const int size = 2048;
     
 };
 
 
-BENCHMARK_F(FloatVector,std_sort)
-{
-    // do something here
-    while (ctxt.Running())
-    {
-        // do something here
-        std::sort(vec.begin(),vec.end());
-    }
-}
 
 extern "C"
 int cmp_float(const void *_a, const void *_b)
 {
-    const float* a = reinterpret_cast<const float*>(a);
-    const float* b = reinterpret_cast<const float*>(b);
+    float a = *(reinterpret_cast<const float*>(_a));
+    float b = *(reinterpret_cast<const float*>(_b));
     
     if (a > b)
       return 1;
     if (a < b)
       return -1;
-      
+     
     return 0;
 }
 
+
 BENCHMARK_F(FloatVector,qsort)
 {
-    // do something here
     while (ctxt.Running())
     {
-        // do something here
-        qsort(vec.data(),1000,sizeof(float),cmp_float);
+        std::vector<float> workVector(size);
+        std::copy(vec.begin(),vec.end(),workVector.begin());
+        {
+            zenbench::BenchmarkArea benchArea(ctxt);
+    
+            qsort(workVector.data(),size,sizeof(float),cmp_float);
+        }
     }
-
 }
 
+BENCHMARK_F(FloatVector,qsort_no_area)
+{
+    while (ctxt.Running())
+    {
+        std::vector<float> workVector(size);
+        std::copy(vec.begin(),vec.end(),workVector.begin());
+    
+        qsort(workVector.data(),size,sizeof(float),cmp_float);
+    }
+}
+
+BENCHMARK_F(FloatVector,std_sort)
+{
+    while (ctxt.Running())
+    {
+        // create a copy of vec in each iteration, to avoid
+        // sorting a presorted vector
+        std::vector<float> workVector(size);
+        std::copy(vec.begin(),vec.end(),workVector.begin());
+        {
+            // to include only a part of the ctxt.Running() loop 
+            // into the benchmark, create a scope with a
+            // zenbench::BenchmarkArea object at the top.
+            // only operations inside the scope are measured.
+            zenbench::BenchmarkArea benchArea(ctxt);
+            
+            // do something here in this scope
+            std::sort(workVector.begin(),workVector.end());
+        }
+    }
+}
+
+
+BENCHMARK_F(FloatVector,std_sort_no_area)
+{
+    while (ctxt.Running())
+    {
+        // create a copy of vec in each iteration, to avoid
+        // sorting a presorted vector
+        std::vector<float> workVector(size);
+        std::copy(vec.begin(),vec.end(),workVector.begin());
+            
+        // do something here in this scope
+        std::sort(workVector.begin(),workVector.end());
+    }
+}
+
+
+
+
+bool isPrimeSimple(int n)
+{
+    if (n < 0)
+    {
+        n = -n;
+    }
+    
+    if (n < 3)
+    {
+        return true;
+    }
+    
+    for (int d = 2; d < n; d++)
+    {
+        if (n % d == 0)
+        {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+bool isPrimeOpt(int n)
+{
+    if (n < 0)
+    {
+        n = -n;
+    }
+    
+    if (n < 3)
+    {
+        return true;
+    }
+    
+    if (n % 2 == 0)
+    {
+        return false;
+    }
+    
+    for (int d = 3; d < sqrt(n); d += 2)
+    {
+        if (n % d == 0)
+        {
+            return false;
+        }
+    }
+    
+    return true;
+}
