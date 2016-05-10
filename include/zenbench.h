@@ -54,7 +54,7 @@ public:
     }
     
 protected:    
-    __int64_t TimePerIteration(__int64_t overhead = 0) const
+    int64_t TimePerIteration(int64_t overhead = 0) const
     {
         auto  perIt = runTime.count()/iterations;
         
@@ -66,7 +66,7 @@ protected:
         return perIt;
     }
 
-    __int64_t Iterations() const
+    int64_t Iterations() const
     {
         return iterations;
     }
@@ -92,7 +92,7 @@ protected:
 private:
     bool                                             running;
     bool                                             useArea;
-    __int64_t                                        iterations;
+    int64_t                                        iterations;
     std::chrono::high_resolution_clock::time_point   start;
     std::chrono::nanoseconds                         duration;
     std::chrono::nanoseconds                         runTime;
