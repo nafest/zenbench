@@ -13,13 +13,22 @@ add_dependencies (libgtest googletest)
 add_dependencies (libgtest_main googletest)
 
 ExternalProject_Get_Property (googletest source_dir binary_dir)
+
+if (WIN32)
+set (GTEST_LIB gtest.lib)
+set (GTEST_MAIN_LIB gtest_main.lib)
+else()
+set (GTEST_LIB libgtest.a)
+set (GTEST_MAIN_LIB libgtest_main.a)
+endif()
+
 set_target_properties (libgtest PROPERTIES
-    "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
+    "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/${GTEST_LIB}"
     "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
    # "INTERFACE_INCLUDE_DIRECTORIES" "${source_dir}/googletest/include"
 )
 set_target_properties (libgtest_main PROPERTIES
-    "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest_main.a"
+    "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/${GTEST_MAIN_LIB}"
     "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
    # "INTERFACE_INCLUDE_DIRECTORIES" "${source_dir}/googletest/include"
 )
