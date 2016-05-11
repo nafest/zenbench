@@ -162,8 +162,8 @@ public:
             benchmark->RunBenchmark(ctxt);
             benchmark->TearDown();
             std::ostringstream ost;
-            auto timePerIteration = ctxt.TimePerIteration(overheadCtxt.TimePerIteration());
-            timePerIteration = std::max(timePerIteration,0ll);
+            int64_t timePerIteration = ctxt.TimePerIteration(overheadCtxt.TimePerIteration());
+            timePerIteration = std::max<int64_t>(timePerIteration,0ll);
             ost << timePerIteration;
             auto nanoStr = ost.str();
             std::cout << std::left << std::setw(maxLength) << benchmark->Name() << "  ";
