@@ -5,6 +5,7 @@ include (ExternalProject)
 ExternalProject_Add(
     googletest
     DOWNLOAD_COMMAND git clone https://github.com/google/googletest.git
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     INSTALL_COMMAND ""
 )
 add_library (libgtest IMPORTED STATIC GLOBAL)
