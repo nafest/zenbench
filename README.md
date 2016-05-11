@@ -1,12 +1,12 @@
 # zenbench - a minimal micro benchmark library
-   * Header - only
+   * Header-only
    * Solely depends on a C++ 11 capable compiler
 
 [![Build Status](https://travis-ci.org/nafest/zenbench.svg?branch=master)](https://travis-ci.org/nafest/zenbench)
 [![Build status](https://ci.appveyor.com/api/projects/status/obvtsougibnr9hpb?svg=true)](https://ci.appveyor.com/project/nafest/zenbench)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 
-### basic usage
+### Basic Usage
 All benchmarks must be created and registered with the `BENCHMARK(name)` or the `BENCHMARK_F(fixture,name)` macro:
 
     BENCHMARK(isPrimeSimple_101)
@@ -28,7 +28,7 @@ To execute all benchmarks and print the results to stdout call `zenbench::Benchm
         zenbench::Benchmark::RunAllBenchmarks();   
     }
     
-### fixture classes
+### Fixture Classes
 Fixture classes must derive from `zenbench::Benchmark` and may overwrite `SetUp`and `TearDown`   
     
     class Fixture : public zenbench::Benchmark
