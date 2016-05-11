@@ -39,9 +39,10 @@ set_target_properties (libgtest_main PROPERTIES
 set (GTEST_INCLUDES "${source_dir}/googletest/include")
 
 project (ZenBenchTests)
+find_package(Threads REQUIRED)
 
 set (CMAKE_CXX_STANDARD 11)
 
 include_directories(../include ${GTEST_INCLUDES})
 add_executable (tests Context_tests.cpp)
-target_link_libraries (tests libgtest libgtest_main)
+target_link_libraries (tests libgtest libgtest_main ${CMAKE_THREAD_LIBS_INIT})
