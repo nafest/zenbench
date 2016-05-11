@@ -52,7 +52,7 @@ public:
         iterations++;
         return true;
     }
-    
+
 protected:    
     int64_t TimePerIteration(int64_t overhead = 0) const
     {
@@ -88,17 +88,21 @@ protected:
         auto now = std::chrono::high_resolution_clock::now();
         runTime += (now - start);
     }
-
+    
 private:
     bool                                             running;
     bool                                             useArea;
-    int64_t                                        iterations;
+    int64_t                                          iterations;
     std::chrono::high_resolution_clock::time_point   start;
     std::chrono::nanoseconds                         duration;
     std::chrono::nanoseconds                         runTime;
     
     friend class BenchmarkArea;
     friend class Benchmark;
+#ifdef FRIEND_TEST
+    FRIEND_TEST(Context,MeasuresCorrectTime);
+    FRIEND_TEST(Context,DetectsBenchmarkArea);
+#endif
 };
 
 
