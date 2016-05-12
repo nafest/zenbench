@@ -16,17 +16,24 @@ namespace zenbench
 
 using BenchmarkList = std::vector<class Benchmark*>;
 
+enum class ContextState
+{
+    Idle,
+    Running,
+    AreaBench
+};
+
 class Context
 {
 public:
-    Context(std::chrono::nanoseconds duration) : running(false), useArea(false), duration(duration)
+    Context(std::chrono::nanoseconds duration) : state(ContextState::Idle), duration(duration)
     {}
     
     // Keeps the benchmark running for the duration given in the constructor.
     // Return true as long as there is time left. 
     bool Running()
     {
-        if (useArea)
+        if (state == ContextState::AreaBench)
         {
             if (runTime > duration)
             {
@@ -35,9 +42,9 @@ public:
             iterations++;
             return true;
         }
-        if (!running)
+        if (state == ContextState::Idle)
         {
-            running = true;
+            state = ContextState::Running;
             iterations = 1;
             start = std::chrono::high_resolution_clock::now();
             return true;
@@ -58,7 +65,7 @@ protected:
     {
         auto  perIt = runTime.count()/iterations;
         
-        if (!useArea)
+        if (state != ContextState::AreaBench)
         {
             perIt -= overhead;
         }
@@ -73,12 +80,12 @@ protected:
     
     void BeginArea()
     {
-        if (!useArea)
+        if (state != ContextState::AreaBench)
         {
             // reset everything set by Running()
             iterations = 1;
             runTime = std::chrono::nanoseconds::zero();  
-            useArea = true; 
+            state = ContextState::AreaBench; 
         }
         start = std::chrono::high_resolution_clock::now();
     }
@@ -90,8 +97,7 @@ protected:
     }
     
 private:
-    bool                                             running;
-    bool                                             useArea;
+    ContextState                                     state;
     int64_t                                          iterations;
     std::chrono::high_resolution_clock::time_point   start;
     std::chrono::nanoseconds                         duration;
@@ -100,8 +106,10 @@ private:
     friend class BenchmarkArea;
     friend class Benchmark;
 #ifdef FRIEND_TEST
-    FRIEND_TEST(Context,MeasuresCorrectTime);
-    FRIEND_TEST(Context,DetectsBenchmarkArea);
+    FRIEND_TEST(Context, MeasuresCorrectTime);
+    FRIEND_TEST(Context, DetectsBenchmarkArea);
+    FRIEND_TEST(Context, CorrectInitialState);
+    FRIEND_TEST(Context, CorrectStateAfterFirstRun);
 #endif
 };
 
