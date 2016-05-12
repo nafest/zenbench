@@ -49,4 +49,19 @@ Fixture classes must derive from `zenbench::Benchmark` and may overwrite `SetUp`
         }
     };
 
+## Benchmark Areas
+For some Benchmarks it is necessary to setup new input data in every iteration. To exclude this setup from the benchmark,
+wrap the included parts in an additional scope and declare a `BenchmarkArea` object at the top of this scope.
 
+    while (ctxt.Running())
+    {
+        // the copy of vec to workVector is not included in the Benchmark
+        std::vector<float> workVector(size);
+        std::copy(vec.begin(),vec.end(),workVector.begin());
+        
+        {
+            zenbench::BenchmarkArea benchArea(ctxt);
+    
+            qsort(workVector.data(),size,sizeof(float),cmp_float);
+        }
+    }
