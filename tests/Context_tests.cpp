@@ -6,6 +6,20 @@
 namespace zenbench
 {
     
+    
+class FakeClock
+{
+public:
+    static std::chrono::high_resolution_clock::time_point now()
+    {
+        static std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
+        tp += std::chrono::nanoseconds(100);
+        return tp;
+    }
+    
+    typedef std::chrono::high_resolution_clock::time_point time_point;
+};
+ 
 TEST(Context, CorrectInitialState)
 {
     zenbench::Context  ctxt(std::chrono::milliseconds(100));
@@ -25,23 +39,17 @@ TEST(Context, CorrectStateAfterFirstRun)
     EXPECT_EQ(1, ctxt.iterations);
 }
 
+using TestContext = BasicContext<FakeClock>;
+
 TEST(Context, MeasuresCorrectTime)
 {
-    zenbench::Context  overheadCtxt(std::chrono::milliseconds(100));
-    while(overheadCtxt.Running());
-    auto overhead = overheadCtxt.TimePerIteration(); 
-    
-    zenbench::Context  ctxt(std::chrono::milliseconds(1));
+    TestContext  ctxt(std::chrono::milliseconds(1));
     
     while (ctxt.Running())
-    {
-        // active waiting for 25 mikroseconds;
-        auto start = std::chrono::high_resolution_clock::now();
-        while (std::chrono::high_resolution_clock::now() - start < std::chrono::microseconds(25));
-    }
+    {}
     
-    // accept 5% inaccuracy (for the sake of stability)
-    EXPECT_GT(1250, std::abs(ctxt.TimePerIteration(overhead)-25000));
+    // the fake clock measures exactly 100ns per iteration
+    EXPECT_EQ(100, ctxt.TimePerIteration());
 }
 
 TEST(Context, DetectsBenchmarkArea)

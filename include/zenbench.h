@@ -23,10 +23,11 @@ enum class ContextState
     AreaBench
 };
 
-class Context
+template <typename Clock>
+class BasicContext
 {
 public:
-    Context(std::chrono::nanoseconds duration) : state(ContextState::Idle), duration(duration)
+    BasicContext(std::chrono::nanoseconds duration) : state(ContextState::Idle), duration(duration)
     {}
     
     // Keeps the benchmark running for the duration given in the constructor.
@@ -46,10 +47,10 @@ public:
         {
             state = ContextState::Running;
             iterations = 1;
-            start = std::chrono::high_resolution_clock::now();
+            start = Clock::now();
             return true;
         }
-        auto now = std::chrono::high_resolution_clock::now();
+        auto now = Clock::now();
         runTime = now - start;
         if (runTime >= duration)
         {
@@ -87,19 +88,19 @@ protected:
             runTime = std::chrono::nanoseconds::zero();  
             state = ContextState::AreaBench; 
         }
-        start = std::chrono::high_resolution_clock::now();
+        start = Clock::now();
     }
     
     void EndArea()
     {
-        auto now = std::chrono::high_resolution_clock::now();
+        auto now = Clock::now();
         runTime += (now - start);
     }
     
 private:
     ContextState                                     state;
     int64_t                                          iterations;
-    std::chrono::high_resolution_clock::time_point   start;
+    typename Clock::time_point                       start;
     std::chrono::nanoseconds                         duration;
     std::chrono::nanoseconds                         runTime;
     
@@ -112,6 +113,8 @@ private:
     FRIEND_TEST(Context, CorrectStateAfterFirstRun);
 #endif
 };
+
+using Context = BasicContext<std::chrono::high_resolution_clock>;
 
 
 class BenchmarkArea
