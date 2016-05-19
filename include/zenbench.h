@@ -134,6 +134,28 @@ private:
     Context&  ctxt;
 };
 
+enum class Color
+{
+    White = 0,
+    Green = 32,
+    Yellow = 33,
+    Cyan = 36
+};
+
+class ConsoleModifier
+{
+public:
+    ConsoleModifier(Color c) : code(c) {}
+    friend std::ostream&
+    operator<<(std::ostream& os, const ConsoleModifier& cm)
+    {
+       return os << "\033[" << static_cast<int>(cm.code) << "m";
+    }  
+  
+private:
+    Color  code;   
+};
+
 class Benchmark 
 {
 public:
@@ -177,13 +199,23 @@ public:
             timePerIteration = std::max<int64_t>(timePerIteration,0ll);
             ost << timePerIteration;
             auto nanoStr = ost.str();
-            std::cout << std::left << std::setw(maxLength) << benchmark->Name() << "  ";
+
+            std::cout << ConsoleModifier(Color::Green);
+            std::cout << std::left << std::setw(maxLength);
+            std::cout << benchmark->Name();
+            std::cout << "  ";
+           
+            std::cout << ConsoleModifier(Color::Yellow);
             std::cout << std::right << std::setw(nanoLength) << nanoStr;
+
             std::ostringstream itstrstr;
             itstrstr << ctxt.Iterations();
             auto itStr = itstrstr.str();
             
-            std::cout << "  " << std::setw(itLength) << itStr << std::endl;
+            std::cout << "  ";
+            std::cout << ConsoleModifier(Color::Cyan);
+            std::cout << std::setw(itLength) << itStr << std::endl;
+            std::cout << "\033[0m";
         }
     }
     
