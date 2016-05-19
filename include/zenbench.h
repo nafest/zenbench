@@ -4,6 +4,10 @@
 #ifndef _ZENBENCH_H
 #define _ZENBENCH_H
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <algorithm>
 #include <chrono>
 #include <vector>
@@ -134,6 +138,15 @@ private:
     Context&  ctxt;
 };
 
+#ifdef _WIN32
+enum class Color
+{
+    White = 0,
+    Green = FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+    Yellow = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+    Cyan = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY
+};
+#else
 enum class Color
 {
     White = 0,
@@ -141,6 +154,7 @@ enum class Color
     Yellow = 33,
     Cyan = 36
 };
+#endif
 
 class ConsoleModifier
 {
@@ -149,11 +163,16 @@ public:
     friend std::ostream&
     operator<<(std::ostream& os, const ConsoleModifier& cm)
     {
-       return os << "\033[" << static_cast<int>(cm.code) << "m";
+#ifdef _WIN32
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),static_cast<WORD>(cm.code));
+        return os;
+#else
+        return os << "\033[" << static_cast<int>(cm.code) << "m";
+#endif
     }  
   
 private:
-    Color  code;   
+    Color  code;
 };
 
 class Benchmark 
@@ -224,7 +243,7 @@ public:
         size_t length = 0;
         for (const auto& benchmark : List())
         {
-            length = std::max(length,benchmark->Name().length());
+            length = benchmark->Name().length() > length ? benchmark->Name().length() : length;
         }
         return length;
     }
