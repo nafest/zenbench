@@ -25,8 +25,10 @@ To execute all benchmarks and print the results to stdout call `zenbench::Benchm
 
     int main(int argc, const char* argv[])
     {
-        zenbench::Benchmark::RunAllBenchmarks();   
+        zenbench::Benchmark::RunAllBenchmarks(argc, argv);   
     }
+    
+or add `ZENBENCH_MAIN` to the global scope. 
     
 ### Fixture Classes
 Fixture classes must derive from `zenbench::Benchmark` and may overwrite `SetUp`and `TearDown`   

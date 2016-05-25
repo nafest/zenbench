@@ -193,7 +193,7 @@ public:
         while (ctxt.Running());
     }
         
-    static void RunAllBenchmarks()
+    static void RunAllBenchmarks(int argc = 0, const char* argv[] = nullptr)
     {
         auto maxLength = MaxNameLength();
         auto nanoLength = std::string("nanoseconds").length();
@@ -317,5 +317,12 @@ _ZB_CONCAT(FIXTURE,NAME)::_init _ZB_CONCAT(FIXTURE,NAME)::_initializer; \
 void _ZB_CONCAT(FIXTURE,NAME)::RunBenchmark(zenbench::Context& ctxt)
 
 }  // namespace zenbench
+
+#define ZENBENCH_MAIN \
+int main(int argc, const char* argv[]) \
+{ \
+    zenbench::Benchmark::RunAllBenchmarks(argc, argv); \
+}
+
 
 #endif

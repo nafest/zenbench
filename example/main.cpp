@@ -31,7 +31,4 @@ BENCHMARK(empty)
     }
 }
 
-int main(int argc, const char* argv[])
-{
-    zenbench::Benchmark::RunAllBenchmarks();   
-}
+ZENBENCH_MAIN
