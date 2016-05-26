@@ -70,3 +70,6 @@ wrap the included parts in an additional scope and declare a `BenchmarkArea` obj
 
 ## Benchmark Filter
 Pass `--zenbench_filter=*foo*` to restrict the execution to benchmarks which names or fixtures contain `foo`.
+
+## Example Output
+![Output of the example](example_run.png)
