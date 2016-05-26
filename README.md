@@ -67,3 +67,6 @@ wrap the included parts in an additional scope and declare a `BenchmarkArea` obj
             qsort(workVector.data(),size,sizeof(float),cmp_float);
         }
     }
+
+## Benchmark Filter
+Pass `--zenbench_filter=*foo*` to restrict the execution to benchmarks which names or fixtures contain `foo`.

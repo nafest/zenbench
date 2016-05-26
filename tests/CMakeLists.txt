@@ -47,5 +47,5 @@ set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 endif()
 
 include_directories(../include ${GTEST_INCLUDES})
-add_executable (tests Context_tests.cpp)
+add_executable (tests Context_tests.cpp Benchmark_tests.cpp)
 target_link_libraries (tests libgtest libgtest_main ${CMAKE_THREAD_LIBS_INIT})

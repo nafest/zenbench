@@ -14,6 +14,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <regex>
 
 namespace zenbench
 {
@@ -177,6 +178,33 @@ private:
 
 class Benchmark 
 {
+private:
+    static std::string FilterArgument(int argc, const char* argv[])
+    {
+        // iterate over all arguments and find --zenbench_filter=
+        std::regex filterRegex {"--zenbench_filter=(.*)"};
+        std::smatch baseMatch;
+        
+        for (int i = 0; i < argc; i++)
+        {
+            std::string argument { argv[i] };
+            if (std::regex_match(argument, baseMatch, filterRegex))
+            {
+                if (baseMatch.size() == 2)
+                {
+                    std::ssub_match subMatch = baseMatch[1];
+                    std::string filter = subMatch.str();
+                    /* replace all occurences of * with .* */
+                    filter = std::regex_replace(filter, std::regex("\\*"), ".*");
+                    
+                    return filter;
+                }
+            }
+        }
+        
+        return std::string(".*");
+    }
+
 public:
     static BenchmarkList& List()
     {
@@ -192,12 +220,25 @@ public:
     {
         while (ctxt.Running());
     }
-        
+    
     static void RunAllBenchmarks(int argc = 0, const char* argv[] = nullptr)
     {
         auto maxLength = MaxNameLength();
         auto nanoLength = std::string("nanoseconds").length();
         auto itLength = std::string("iterations").length();
+        
+        auto filter = FilterArgument(argc, argv);
+        
+        std::regex filterRegex;
+        try 
+        {
+          filterRegex = std::regex(filter);
+        }
+        catch (std::regex_error)
+        {
+            std::cout << "Invalid filter: " << filter << std::endl;
+            exit(1);
+        }
         
         Context overheadCtxt(std::chrono::seconds(1));
         EmptyBenchMark(overheadCtxt);
@@ -209,6 +250,10 @@ public:
         
         for (auto benchmark : List())
         {
+            std::smatch baseMatch;
+            if (!std::regex_match(benchmark->Name(), baseMatch, filterRegex))
+              continue;
+              
             Context  ctxt(std::chrono::seconds(1));
             benchmark->SetUp();
             benchmark->RunBenchmark(ctxt);
@@ -265,6 +310,12 @@ protected:
     
 protected:
     std::string name;
+
+#ifdef FRIEND_TEST
+    FRIEND_TEST(Benchmark, FilterArgumentWithNoArg);
+    FRIEND_TEST(Benchmark, FilterArgumentWithSimpleFilter);
+    FRIEND_TEST(Benchmark, FilterArgumentWithWildcards);
+#endif
 };
 
 #define _ZB_CONCATX(A,B) A ## B
